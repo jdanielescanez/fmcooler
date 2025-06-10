@@ -8,7 +8,7 @@ import sys
 import pandas as pd
 import time
 
-PRECISION = 16
+PRECISION = 8
 def solve(model, num_reads):
     qubo = model.to_qubo()
     dwave_qubo = qubo.Q
@@ -38,17 +38,17 @@ def main():
     w = {}
     pairs = pd.read_csv(csv_path)[['features', column]].values.tolist()
     for feature, value in pairs:
-        w[feature.upper()] = 10 ** PRECISION * value
+        w[feature] = 10 ** PRECISION * value
 
     dm = DiscoverMetamodels()
     feature_model = dm.use_transformation_t2m(uvl_path,'fm')
     sat_model = dm.use_transformation_m2m(feature_model,"pysat")
     clauses = sat_model.get_all_clauses()
 
-    var_map = {k.upper(): v for k, v in sat_model.variables.items()}
+    var_map = {k: v for k, v in sat_model.variables.items()}
     inv_map = {v: k for k, v in var_map.items()}
 
-    LAM = 10 ** (PRECISION + 3)
+    LAM = 10 ** (PRECISION + 5)
 
     x = {key: boolean_var(key) for key in var_map.keys()}
 
@@ -79,12 +79,11 @@ def main():
     print('Number of total variables:', len(qubo))
     print("Variable assignment:", {k: int(v) for k, v in model_solution.items()})
 
-    output_path = f'./output/{uvl_path.split('/')[-1].split('.')[0]}_{column}_{args[4]}_{num_reads}.out'
+    output_path = f'./output/{uvl_path.split('/')[-1].split('.')[0]}_{column}_{args[4]}_{num_reads}.config'
     with open(output_path, 'w') as f:
-        f.write(f'{model_value}\n')
         f.write('\n'.join(list(filter(lambda x: x != None, [(k if v else None) for k, v in model_solution.items()]))))
     
-    print("The variables set to one in the solution can be found in:", output_path)
+    print("\nThe solution configuration can be found in:", output_path)
 
 if __name__ == "__main__":
     main()

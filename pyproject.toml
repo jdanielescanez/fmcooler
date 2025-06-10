@@ -1,0 +1,11 @@
+[project]
+name = "fmcooler"
+version = "0.1.0"
+description = "FMCooler is a Feature Model solver tool that uses the Simulated Annealing algorithm to search for valid and optimized feature configurations."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "dwave-neal>=0.6.0",
+    "flamapy>=2.0.1",
+    "qubovert>=1.2.5",
+]

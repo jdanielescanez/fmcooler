@@ -27,10 +27,10 @@ This will install all necessary dependencies and make the package available for 
 
 ## Usage
 
-An example of execution of `fmcooler` gets a feature model (e.g., `tree.uvl`) and a weights file (e.g., `weights.csv`) where we have the data about the impact of each feature for a concrete criteria (e.g., `variable`) that we would like to minimize (i.e., `min`, as `max` is used to maximize) using 100 reads (note that a read refers to one independent run of the annealing algorithm, starting from a initial state and proceeding through the annealing schedule to produce a single sample).
+An example of execution of `fmcooler` gets a feature model (e.g., `tree.uvl`) and a weights file (e.g., `weights.csv`) where we have the data about the impact of each feature for a concrete criteria (e.g., `variable`) that we would like to minimize (i.e., `min`, as `max` is used to maximize) using `100` reads (note that a read refers to one independent run of the annealing algorithm, starting from a initial state and proceeding through the annealing schedule to produce a single sample).
 
 ```bash
-fmcooler tree.uvl weights.csv variable min 100
+./fmcooler.py tree.uvl weights.csv variable min 100
 ```
 
 ## Contributing

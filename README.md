@@ -1,6 +1,6 @@
 # FMCooler
 
-**FMCooler** is a Feature Model solver tool that uses the **Simulated Annealing** algorithm to search for valid and optimized feature configurations.
+**FMCooler** is a tool that uses the **Simulated Annealing** algorithm to search for valid and optimized feature configurations within feature models.
 
 https://github.com/user-attachments/assets/12e87894-fa4b-44bb-a43b-b1776ef972ce
 

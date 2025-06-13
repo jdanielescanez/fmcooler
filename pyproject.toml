@@ -1,7 +1,7 @@
 [project]
 name = "fmcooler"
 version = "0.1.0"
-description = "FMCooler is a Feature Model solver tool that uses the Simulated Annealing algorithm to search for valid and optimized feature configurations."
+description = "FMCooler is a tool that uses the Simulated Annealing algorithm to search for valid and optimized feature configurations within feature models."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [

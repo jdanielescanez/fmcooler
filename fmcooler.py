@@ -88,6 +88,8 @@ def main():
     print("Variable assignment:", {k: int(v) for k, v in model_solution.items()})
 
     # Write the solution configuration
+    if not os.path.exists('./output'):
+        os.mkdir('./output')
     output_path = f'./output/{uvl_path.split('/')[-1].split('.')[0]}_{column}_{args[4]}_{num_reads}.config'
     with open(output_path, 'w') as f:
         f.write('\n'.join(list(filter(lambda x: x != None, [(k if v else None) for k, v in model_solution.items()]))))

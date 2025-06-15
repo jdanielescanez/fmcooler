@@ -8,6 +8,7 @@ from neal import SimulatedAnnealingSampler
 import sys
 import pandas as pd
 import time
+import os
 
 # Constant fixing the number of decimal places considered in the weights
 PRECISION = 8

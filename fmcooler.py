@@ -37,7 +37,8 @@ def main():
     print('[&] Reading model with flamapy and generating CNF to perfom restrictions in QUBO')
     uvl_path = args[1]
     csv_path = args[2]
-    column = args[3]
+    columns, rates_str = tuple(map(lambda x: x.split(','), args[3].split(':')))
+    rates = list(map(float, rates_str))
     is_max = 0 if args[4] == "min" else 1
     num_reads = int(args[5])
 
@@ -52,9 +53,9 @@ def main():
 
     # Load variable weights
     w = {}
-    pairs = pd.read_csv(csv_path)[['features', column]].values.tolist()
-    for feature, value in pairs:
-        w[feature] = 10 ** PRECISION * value
+    pairs = pd.read_csv(csv_path)[['features', *columns]].values.tolist()
+    for feature, *values in pairs:
+        w[feature] = 10 ** PRECISION * sum(rate * value for rate, value in zip(rates, values))
 
     # Implement the objective function g_w using the weights and qubovert
     x = {key: boolean_var(key) for key in var_map.keys()}
@@ -91,7 +92,7 @@ def main():
     # Write the solution configuration
     if not os.path.exists('./output'):
         os.mkdir('./output')
-    output_path = f'./output/{uvl_path.split('/')[-1].split('.')[0]}_{column}_{args[4]}_{num_reads}.config'
+    output_path = f'./output/{uvl_path.split('/')[-1].split('.')[0]}_{'-'.join(columns)}:{'-'.join(rates_str)}_{args[4]}_{num_reads}.config'
     with open(output_path, 'w') as f:
         f.write('\n'.join(list(filter(lambda x: x != None, [(k if v else None) for k, v in model_solution.items()]))))
     

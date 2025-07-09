@@ -53,7 +53,10 @@ def main():
 
     # Load variable weights
     w = {}
-    pairs = pd.read_csv(csv_path)[['features', *columns]].values.tolist()
+    df = pd.read_csv(csv_path)[[*columns]]
+    normalised_df = (df - df.min()) / (df.sum() - df.min())
+    normalised_df.insert(loc=0, column='features', value=pd.read_csv(csv_path)[['features']])
+    pairs = normalised_df.values.tolist()
     for feature, *values in pairs:
         w[feature] = 10 ** PRECISION * sum(rate * value for rate, value in zip(rates, values))
 
@@ -76,7 +79,12 @@ def main():
     model_solution, qubo = solve(model, num_reads)
     end_time = time.time()
     success_msg = '[*] Valid result generated!' if model.is_solution_valid(model_solution) else '[!] No valid solution was found'
-    model_value = (- 1) ** is_max * model.value(model_solution) / 10 ** PRECISION
+    conf = list(filter(lambda x: x != None, [(k if v else None) for k, v in model_solution.items()]))
+    model_value = 0
+    df_not_normalised = pd.read_csv(csv_path)[['features', *columns]]
+    for feature in conf:
+        for i, column in enumerate(columns):
+            model_value += df_not_normalised[column][df_not_normalised['features'] == feature].values[0] * rates[i]
 
     # Print results
     print(success_msg, f'[{10 ** 3 * (end_time - start_time)} ms]\n')
@@ -94,7 +102,7 @@ def main():
         os.mkdir('./output')
     output_path = f'./output/{uvl_path.split('/')[-1].split('.')[0]}_{'-'.join(columns)}:{'-'.join(rates_str)}_{args[4]}_{num_reads}.config'
     with open(output_path, 'w') as f:
-        f.write('\n'.join(list(filter(lambda x: x != None, [(k if v else None) for k, v in model_solution.items()]))))
+        f.write('\n'.join(conf))
     
     print("\nThe solution configuration can be found in:", output_path)
 

@@ -1,26 +1,9 @@
 #!/usr/bin/env python
 
-# Libraries
-from flamapy.core.discover import DiscoverMetamodels
-from qubovert import boolean_var
-from neal import SimulatedAnnealingSampler
-
 import sys
-import pandas as pd
-import time
+from operator import itemgetter
 import os
-
-# Constant fixing the number of decimal places considered in the weights
-PRECISION = 8
-
-# Solve the model using dwave-neal with a certain number of reads
-def solve(model, num_reads):
-    qubo = model.to_qubo()
-    dwave_qubo = qubo.Q
-    res = SimulatedAnnealingSampler().sample_qubo(dwave_qubo, num_reads=num_reads)
-    qubo_solution = res.first.sample
-    model_solution = model.convert_solution(qubo_solution)
-    return model_solution, qubo
+from src.utils import *
 
 # Main function
 def main():
@@ -43,51 +26,19 @@ def main():
     num_reads = int(args[5])
 
     # Get clauses in CNF with flamapy
-    dm = DiscoverMetamodels()
-    feature_model = dm.use_transformation_t2m(uvl_path,'fm')
-    sat_model = dm.use_transformation_m2m(feature_model,"pysat")
-    clauses = sat_model.get_all_clauses()
-
-    var_map = {k: v for k, v in sat_model.variables.items()}
-    inv_map = {v: k for k, v in var_map.items()}
-
+    clauses, var_map, inv_map = get_cnf(uvl_path)
     # Load variable weights
-    w = {}
-    df = pd.read_csv(csv_path)[[*columns]]
-    normalised_df = (df - df.min()) / (df.sum() - df.min())
-    normalised_df.insert(loc=0, column='features', value=pd.read_csv(csv_path)[['features']])
-    pairs = normalised_df.values.tolist()
-    for feature, *values in pairs:
-        w[feature] = 10 ** PRECISION * sum(rate * value for rate, value in zip(rates, values))
-
-    # Implement the objective function g_w using the weights and qubovert
-    x = {key: boolean_var(key) for key in var_map.keys()}
-    model = 0
-    for key in var_map.keys():
-        # is_max set the negative sign for the weights
-        model += (- 1) ** is_max * w[key] * x[key]
-
-    # Implement the restriction function h_r using the clauses
-    LAM = 10 ** (PRECISION + 5)
-    for clause in clauses:
-        readable = [f'(1 - x["{inv_map[abs(lit)]}"])' if lit > 0 else f'x["{inv_map[abs(lit)]}"]' for lit in clause]
-        model.add_constraint_NAND(*[eval(y) for y in readable], lam=LAM)
-
+    w = load_weights(csv_path, columns, rates)
+    # Create model
+    model, x = build_model(var_map, inv_map, w, is_max, clauses)
     # Run the experiment and get results
     print(f'[&] Solving {uvl_path} instance ({len(x)} variables)...')
-    start_time = time.time()
-    model_solution, qubo = solve(model, num_reads)
-    end_time = time.time()
-    success_msg = '[*] Valid result generated!' if model.is_solution_valid(model_solution) else '[!] No valid solution was found'
-    conf = list(filter(lambda x: x != None, [(k if v else None) for k, v in model_solution.items()]))
-    model_value = 0
-    df_not_normalised = pd.read_csv(csv_path)[['features', *columns]]
-    for feature in conf:
-        for i, column in enumerate(columns):
-            model_value += df_not_normalised[column][df_not_normalised['features'] == feature].values[0] * rates[i]
+    solution = run(model, num_reads, csv_path, columns, rates)
+    model_solution, qubo, model_value, total_time, conf = itemgetter('model_solution', 'qubo', 'model_value', 'total_time', 'conf')(solution)
 
     # Print results
-    print(success_msg, f'[{10 ** 3 * (end_time - start_time)} ms]\n')
+    success_msg = '[*] Valid result generated!' if model.is_solution_valid(model_solution) else '[!] No valid solution was found'
+    print(success_msg, f'[{10 ** 3 * total_time} ms]\n')
     print('Results:')
     print('=======')
     print('Constraints apply' if model.is_solution_valid(model_solution) else 'No solution found with restrictions')

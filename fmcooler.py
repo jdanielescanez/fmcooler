@@ -9,28 +9,30 @@ from src.utils import *
 def main():
     # Parse arguments
     args = sys.argv
-    if len(args) != 6 or args[4] not in ["min", "max"]:
+    if len(args) != 5:
         print('[!] Input error\n')
         print('[1] The file of the Feature Model in UVL format must be specified as first parameter')
         print('[2] The file of weights must be specified as second parameter')
-        print('[3] The number of the used column must be specified as third parameter')
-        print('[4] The string "min" or "max" must be specified to MINIMIZE or MAXIMIZE as fourth parameter')
-        print('[5] The number of reads must be specified as fifth parameter')
+        print('[3] vars:rates:min must be specified as third parameter, where:')
+        print('    - vars are the used columns (separted by commas)')
+        print('    - rates are the weights for each varaible in multi-criteria (separted by commas)')
+        print('    - min are the strings "min" or "max", to MINIMIZE or MAXIMIZE (separted by commas)')
+        print('[4] The number of reads must be specified as fifth parameter')
         exit(-1)
     print('[&] Reading model with flamapy and generating CNF to perfom restrictions in QUBO')
     uvl_path = args[1]
     csv_path = args[2]
-    columns, rates_str = tuple(map(lambda x: x.split(','), args[3].split(':')))
+    columns, rates_str, mins_str = tuple(map(lambda x: x.split(','), args[3].split(':')))
     rates = list(map(float, rates_str))
-    is_max = 0 if args[4] == "min" else 1
-    num_reads = int(args[5])
+    mins = list(map(lambda x: 1 if x == 'min' else -1, mins_str))
+    num_reads = int(args[4])
 
     # Get clauses in CNF with flamapy
     clauses, var_map, inv_map = get_cnf(uvl_path)
     # Load variable weights
-    w = load_weights(csv_path, columns, rates)
+    w = load_weights(csv_path, columns, rates, mins)
     # Create model
-    model, x = build_model(var_map, inv_map, w, is_max, clauses)
+    model, x = build_model(var_map, inv_map, w, clauses)
     # Run the experiment and get results
     print(f'[&] Solving {uvl_path} instance ({len(x)} variables)...')
     solution = run(model, num_reads, csv_path, columns, rates)

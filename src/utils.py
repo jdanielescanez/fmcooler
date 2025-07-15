@@ -23,24 +23,24 @@ def get_cnf(uvl_path):
     return clauses, var_map, inv_map
 
 # Load variable weights
-def load_weights(csv_path, columns, rates):
+def load_weights(csv_path, columns, rates, mins):
     w = {}
     df = pd.read_csv(csv_path)[[*columns]]
     normalised_df = (df - df.min()) / (df.sum() - df.min())
     normalised_df.insert(loc=0, column='features', value=pd.read_csv(csv_path)[['features']])
     pairs = normalised_df.values.tolist()
     for feature, *values in pairs:
-        w[feature] = 10 ** PRECISION * sum(rate * value for rate, value in zip(rates, values))
+        w[feature] = 10 ** PRECISION * sum(min_coef * rate * value for rate, value, min_coef in zip(rates, values, mins))
     return w
 
 # Create model
-def build_model(var_map, inv_map, w, is_max, clauses):
+def build_model(var_map, inv_map, w, clauses):
     # Implement the objective function g_w using the weights and qubovert
     model = 0
     x = {key: boolean_var(key) for key in var_map.keys()}
     for key in var_map.keys():
         # is_max set the negative sign for the weights
-        model += (- 1) ** is_max * w[key] * x[key]
+        model += w[key] * x[key]
 
     # Implement the restriction function h_r using the clauses
     LAM = 10 ** (PRECISION + 5)

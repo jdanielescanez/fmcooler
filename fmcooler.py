@@ -44,16 +44,16 @@ def main():
     print('Results:')
     print('=======')
     print('Constraints apply' if model.is_solution_valid(model_solution) else 'No solution found with restrictions')
-    print("Model value:", model_value)
     print('Number of input variables:', len(x))
     print('Number of auxiliary variables:', len(qubo) - len(x))
     print('Number of total variables:', len(qubo))
-    print("Variable assignment:", {k: int(v) for k, v in model_solution.items()})
+    print("Solution value:", model_value)
+    print("Solution variable assignment:", {k: int(v) for k, v in model_solution.items()})
 
     # Write the solution configuration
     if not os.path.exists('./output'):
         os.mkdir('./output')
-    output_path = f'./output/{uvl_path.split('/')[-1].split('.')[0]}_{'-'.join(columns)}:{'-'.join(rates_str)}_{args[4]}_{num_reads}.config'
+    output_path = f"./output/{uvl_path.split('/')[-1].split('.')[0]}_{'-'.join(columns)}:{'-'.join(rates_str)}_{args[4]}_{num_reads}.config"
     with open(output_path, 'w') as f:
         f.write('\n'.join(conf))
     

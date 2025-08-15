@@ -18,14 +18,19 @@ git clone http://github.com/jdanielescanez/fmcooler
 
 ## Installation
 
-FMCooler requires Python 3.13. Once the repository has been cloned, navigate into the project directory and install the module along with its dependencies in editable mode:
+FMCooler requires Python >= 3.11. Once the repository has been cloned, navigate into the project directory and install the module along with its dependencies in editable mode:
 
 ```bash
 cd fmcooler
 pip install -e .
 ```
 
-This will install all necessary dependencies and make the package available for development and use.
+This will install all necessary dependencies and make the package available for development and use. You can see the dependencies inside the `pyproject.toml` file.
+
+FMCooler was also tested succesfully on the cloud-based Google Colab, so users could upload it to the session and use a notebook to install the dependencies and launch the tool.
+
+Windows users, that want to run it locally, will require to install extra software for a succesful installation, such as Microsoft C++ Build Tools (e.g., the qubovert dependency is not precompiled so its C++ parts will require to be compiled in your computer).
+
 
 ## Usage
 

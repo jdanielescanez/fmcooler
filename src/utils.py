@@ -46,7 +46,7 @@ def build_model(var_map, inv_map, w, clauses):
     LAM = 10 ** (PRECISION + 5)
     for clause in clauses:
         readable = [f'(1 - x["{inv_map[abs(lit)]}"])' if lit > 0 else f'x["{inv_map[abs(lit)]}"]' for lit in clause]
-        model.add_constraint_NAND(*[eval(y) for y in readable], lam=LAM)
+        model.add_constraint_NAND(*[eval(y, {"x": x}) for y in readable], lam=LAM)
     return model, x
 
 # Run the experiment and get results
